@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "djangoscannerxss"
+version = "0.1.0"
+description = ""
+authors = ["alvinist27 <suhrobhotamov496@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+django = "4.2"
+wemake-python-styleguide = "0.17.0"
+mypy = "1.2.0"
+python-dotenv = "1.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
