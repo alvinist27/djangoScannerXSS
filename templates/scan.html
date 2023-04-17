@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block intro %}
+    <div class="container-xxl py-5 bg-primary hero-header mb-5">
+        <div class="container my-5 py-5 px-lg-5">
+            <div class="row g-5 py-5">
+                <div class="col-12 text-center">
+                    <h1 class="text-white animated zoomIn">XSSMaster Scan</h1>
+                    <hr class="bg-white mx-auto mt-0" style="width: 90px;">
+                    <div class="wow fadeInUp" data-wow-delay="0.3s">
+                        <form method="post">
+                            {{ scan_form.csrf_token }}
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        {{ scan_form.target_url(class='form-control', placeholder='url') }}
+                                        <label>{{ scan_form.target_url.label }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        {{ scan_form.scan_type(class='form-control', placeholder='url') }}
+                                        <label>{{ scan_form.scan_type.label }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <button class="btn btn-outline-light w-25 py-3" type="submit">Submit</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
