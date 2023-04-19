@@ -137,6 +137,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 REVIEW_DIR = os.path.join(MEDIA_ROOT, 'reviews')
 
+LOCALE_PATHS = (
+    os.path.join(os.path.dirname(__file__), '../app_scanner/locale'),
+)
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

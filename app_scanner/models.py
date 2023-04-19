@@ -8,7 +8,6 @@ from django.utils.translation import gettext_lazy as _
 from app_scanner.choices import ScanRiskLevelChoices, ScanStatusChoices, XSSVulnerabilityTypeChoices
 from djangoScannerXSS.settings import REVIEW_DIR
 
-DB_SHORT_MAX_LENGTH = 1
 DB_MAX_LENGTH = 255
 DB_LONG_MAX_LENGTH = 512
 
@@ -71,12 +70,11 @@ class ScanResult(models.Model):
     """Model for ScanResult entities."""
 
     risk_level = models.CharField(
-        max_length=DB_SHORT_MAX_LENGTH,
         choices=ScanRiskLevelChoices.choices,
         verbose_name=_('Risk level'),
     )
     review = models.JSONField(verbose_name=_('Review'))
-    review_file_path = models.FilePathField(path=REVIEW_DIR, verbose_name=_('Review'))
+    review_file_path = models.FilePathField(path=REVIEW_DIR, blank=True, verbose_name=_('File review'))
 
     class Meta:
         """Class with meta information of ScanResult model."""
@@ -101,8 +99,8 @@ class Scan(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_scans', verbose_name=_('User'))
     date_start = models.DateTimeField(auto_now_add=True, verbose_name=_('Date start'))
     date_end = models.DateTimeField(null=True, blank=True, verbose_name=_('Date end'))
-    status = models.IntegerField(choices=ScanStatusChoices.choices, verbose_name=_('Status'))
-    result = models.OneToOneField(ScanResult, on_delete=models.CASCADE, null=True, verbose_name=_('Result'))
+    status = models.CharField(choices=ScanStatusChoices.choices, verbose_name=_('Status'))
+    result = models.OneToOneField(ScanResult, on_delete=models.CASCADE, null=True, blank=True, verbose_name=_('Result'))
 
     class Meta:
         """Class with meta information of Scan model."""

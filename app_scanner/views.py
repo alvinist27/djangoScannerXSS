@@ -1,3 +1,1 @@
-from django.shortcuts import render
-
-# Create your views here.
+"""Module for app_users views."""
