@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'app_scanner/base.html' %}
 
 {% block intro %}
     <div class="container-xxl py-5 bg-primary hero-header mb-5">
@@ -12,7 +12,7 @@
                     <a href="/contact" class="btn btn-outline-light py-sm-3 px-sm-5 rounded-pill animated slideInRight">Contact Us</a>
                 </div>
                 <div class="col-lg-6 text-center text-lg-start">
-                    <img class="img-fluid" src="../static/img/hero.png" alt="">
+                    <img class="img-fluid" src="../../static/img/hero.png" alt="">
                 </div>
             </div>
         </div>
@@ -20,7 +20,7 @@
 {% endblock %}
 
 {% block content %}
-    {{ super() }}
+    {{ block.super }}
     <div class="container-xxl py-5">
         <div class="container px-lg-5">
             <div class="row g-5">
@@ -49,7 +49,7 @@
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <img class="img-fluid wow zoomIn" data-wow-delay="0.5s" src="../static/img/about.jpg">
+                    <img class="img-fluid wow zoomIn" data-wow-delay="0.5s" src="../../static/img/about.jpg">
                 </div>
             </div>
         </div>
@@ -70,7 +70,7 @@
                     </div>
                 </div>
                 <div class="col-md-6 text-center mb-n5 d-none d-md-block">
-                    <img class="img-fluid mt-5" style="height: 250px;" src="../static/img/newsletter.png">
+                    <img class="img-fluid mt-5" style="height: 250px;" src="../../static/img/newsletter.png">
                 </div>
             </div>
         </div>
@@ -171,9 +171,9 @@
             <div class="row g-4 portfolio-container">
                 <div class="col-lg-4 col-md-6 portfolio-item first wow zoomIn" data-wow-delay="0.1s">
                     <div class="position-relative rounded overflow-hidden">
-                        <img class="img-fluid w-100" src="../static/img/portfolio-1.jpg" alt="">
+                        <img class="img-fluid w-100" src="../../static/img/portfolio-1.jpg" alt="">
                         <div class="portfolio-overlay">
-                            <a class="btn btn-light" href="../static/img/portfolio-1.jpg" data-lightbox="portfolio"><i class="fa fa-plus fa-2x text-primary"></i></a>
+                            <a class="btn btn-light" href="../../static/img/portfolio-1.jpg" data-lightbox="portfolio"><i class="fa fa-plus fa-2x text-primary"></i></a>
                             <div class="mt-auto">
                                 <small class="text-white"><i class="fa fa-folder me-2"></i>Web Design</small>
                                 <a class="h5 d-block text-white mt-1 mb-0" href="">Project Name</a>
@@ -183,9 +183,9 @@
                 </div>
                 <div class="col-lg-4 col-md-6 portfolio-item second wow zoomIn" data-wow-delay="0.3s">
                     <div class="position-relative rounded overflow-hidden">
-                        <img class="img-fluid w-100" src="../static/img/portfolio-2.jpg" alt="">
+                        <img class="img-fluid w-100" src="../../static/img/portfolio-2.jpg" alt="">
                         <div class="portfolio-overlay">
-                            <a class="btn btn-light" href="../static/img/portfolio-2.jpg" data-lightbox="portfolio"><i class="fa fa-plus fa-2x text-primary"></i></a>
+                            <a class="btn btn-light" href="../../static/img/portfolio-2.jpg" data-lightbox="portfolio"><i class="fa fa-plus fa-2x text-primary"></i></a>
                             <div class="mt-auto">
                                 <small class="text-white"><i class="fa fa-folder me-2"></i>Web Design</small>
                                 <a class="h5 d-block text-white mt-1 mb-0" href="">Project Name</a>
@@ -195,9 +195,9 @@
                 </div>
                 <div class="col-lg-4 col-md-6 portfolio-item first wow zoomIn" data-wow-delay="0.6s">
                     <div class="position-relative rounded overflow-hidden">
-                        <img class="img-fluid w-100" src="../static/img/portfolio-3.jpg" alt="">
+                        <img class="img-fluid w-100" src="../../static/img/portfolio-3.jpg" alt="">
                         <div class="portfolio-overlay">
-                            <a class="btn btn-light" href="../static/img/portfolio-3.jpg" data-lightbox="portfolio"><i class="fa fa-plus fa-2x text-primary"></i></a>
+                            <a class="btn btn-light" href="../../static/img/portfolio-3.jpg" data-lightbox="portfolio"><i class="fa fa-plus fa-2x text-primary"></i></a>
                             <div class="mt-auto">
                                 <small class="text-white"><i class="fa fa-folder me-2"></i>Web Design</small>
                                 <a class="h5 d-block text-white mt-1 mb-0" href="">Project Name</a>
@@ -207,9 +207,9 @@
                 </div>
                 <div class="col-lg-4 col-md-6 portfolio-item second wow zoomIn" data-wow-delay="0.1s">
                     <div class="position-relative rounded overflow-hidden">
-                        <img class="img-fluid w-100" src="../static/img/portfolio-4.jpg" alt="">
+                        <img class="img-fluid w-100" src="../../static/img/portfolio-4.jpg" alt="">
                         <div class="portfolio-overlay">
-                            <a class="btn btn-light" href="../static/img/portfolio-4.jpg" data-lightbox="portfolio"><i class="fa fa-plus fa-2x text-primary"></i></a>
+                            <a class="btn btn-light" href="../../static/img/portfolio-4.jpg" data-lightbox="portfolio"><i class="fa fa-plus fa-2x text-primary"></i></a>
                             <div class="mt-auto">
                                 <small class="text-white"><i class="fa fa-folder me-2"></i>Web Design</small>
                                 <a class="h5 d-block text-white mt-1 mb-0" href="">Project Name</a>
@@ -219,9 +219,9 @@
                 </div>
                 <div class="col-lg-4 col-md-6 portfolio-item first wow zoomIn" data-wow-delay="0.3s">
                     <div class="position-relative rounded overflow-hidden">
-                        <img class="img-fluid w-100" src="../static/img/portfolio-5.jpg" alt="">
+                        <img class="img-fluid w-100" src="../../static/img/portfolio-5.jpg" alt="">
                         <div class="portfolio-overlay">
-                            <a class="btn btn-light" href="../static/img/portfolio-5.jpg" data-lightbox="portfolio"><i class="fa fa-plus fa-2x text-primary"></i></a>
+                            <a class="btn btn-light" href="../../static/img/portfolio-5.jpg" data-lightbox="portfolio"><i class="fa fa-plus fa-2x text-primary"></i></a>
                             <div class="mt-auto">
                                 <small class="text-white"><i class="fa fa-folder me-2"></i>Web Design</small>
                                 <a class="h5 d-block text-white mt-1 mb-0" href="">Project Name</a>
@@ -231,9 +231,9 @@
                 </div>
                 <div class="col-lg-4 col-md-6 portfolio-item second wow zoomIn" data-wow-delay="0.6s">
                     <div class="position-relative rounded overflow-hidden">
-                        <img class="img-fluid w-100" src="../static/img/portfolio-6.jpg" alt="">
+                        <img class="img-fluid w-100" src="../../static/img/portfolio-6.jpg" alt="">
                         <div class="portfolio-overlay">
-                            <a class="btn btn-light" href="../static/img/portfolio-6.jpg" data-lightbox="portfolio"><i class="fa fa-plus fa-2x text-primary"></i></a>
+                            <a class="btn btn-light" href="../../static/img/portfolio-6.jpg" data-lightbox="portfolio"><i class="fa fa-plus fa-2x text-primary"></i></a>
                             <div class="mt-auto">
                                 <small class="text-white"><i class="fa fa-folder me-2"></i>Web Design</small>
                                 <a class="h5 d-block text-white mt-1 mb-0" href="">Project Name</a>
@@ -255,7 +255,7 @@
                     <i class="fa fa-quote-left fa-2x mb-3"></i>
                     <p>Dolor et eos labore, stet justo sed est sed. Diam sed sed dolor stet amet eirmod eos labore diam</p>
                     <div class="d-flex align-items-center">
-                        <img class="img-fluid flex-shrink-0 rounded-circle" src="../static/img/testimonial-1.jpg" style="width: 50px; height: 50px;">
+                        <img class="img-fluid flex-shrink-0 rounded-circle" src="../../static/img/testimonial-1.jpg" style="width: 50px; height: 50px;">
                         <div class="ps-3">
                             <h6 class="text-white mb-1">Client Name</h6>
                             <small>Profession</small>
@@ -266,7 +266,7 @@
                     <i class="fa fa-quote-left fa-2x mb-3"></i>
                     <p>Dolor et eos labore, stet justo sed est sed. Diam sed sed dolor stet amet eirmod eos labore diam</p>
                     <div class="d-flex align-items-center">
-                        <img class="img-fluid flex-shrink-0 rounded-circle" src="../static/img/testimonial-2.jpg" style="width: 50px; height: 50px;">
+                        <img class="img-fluid flex-shrink-0 rounded-circle" src="../../static/img/testimonial-2.jpg" style="width: 50px; height: 50px;">
                         <div class="ps-3">
                             <h6 class="text-white mb-1">Client Name</h6>
                             <small>Profession</small>
@@ -277,7 +277,7 @@
                     <i class="fa fa-quote-left fa-2x mb-3"></i>
                     <p>Dolor et eos labore, stet justo sed est sed. Diam sed sed dolor stet amet eirmod eos labore diam</p>
                     <div class="d-flex align-items-center">
-                        <img class="img-fluid flex-shrink-0 rounded-circle" src="../static/img/testimonial-3.jpg" style="width: 50px; height: 50px;">
+                        <img class="img-fluid flex-shrink-0 rounded-circle" src="../../static/img/testimonial-3.jpg" style="width: 50px; height: 50px;">
                         <div class="ps-3">
                             <h6 class="text-white mb-1">Client Name</h6>
                             <small>Profession</small>
@@ -288,7 +288,7 @@
                     <i class="fa fa-quote-left fa-2x mb-3"></i>
                     <p>Dolor et eos labore, stet justo sed est sed. Diam sed sed dolor stet amet eirmod eos labore diam</p>
                     <div class="d-flex align-items-center">
-                        <img class="img-fluid flex-shrink-0 rounded-circle" src="../static/img/testimonial-4.jpg" style="width: 50px; height: 50px;">
+                        <img class="img-fluid flex-shrink-0 rounded-circle" src="../../static/img/testimonial-4.jpg" style="width: 50px; height: 50px;">
                         <div class="ps-3">
                             <h6 class="text-white mb-1">Client Name</h6>
                             <small>Profession</small>
@@ -318,7 +318,7 @@
                                 <a class="btn btn-square text-primary bg-white my-1" href=""><i class="fab fa-instagram"></i></a>
                                 <a class="btn btn-square text-primary bg-white my-1" href=""><i class="fab fa-linkedin-in"></i></a>
                             </div>
-                            <img class="img-fluid rounded w-100" src="../static/img/team-1.jpg" alt="">
+                            <img class="img-fluid rounded w-100" src="../../static/img/team-1.jpg" alt="">
                         </div>
                         <div class="px-4 py-3">
                             <h5 class="fw-bold m-0">Jhon Doe</h5>
@@ -335,7 +335,7 @@
                                 <a class="btn btn-square text-primary bg-white my-1" href=""><i class="fab fa-instagram"></i></a>
                                 <a class="btn btn-square text-primary bg-white my-1" href=""><i class="fab fa-linkedin-in"></i></a>
                             </div>
-                            <img class="img-fluid rounded w-100" src="../static/img/team-2.jpg" alt="">
+                            <img class="img-fluid rounded w-100" src="../../static/img/team-2.jpg" alt="">
                         </div>
                         <div class="px-4 py-3">
                             <h5 class="fw-bold m-0">Emma William</h5>
@@ -352,7 +352,7 @@
                                 <a class="btn btn-square text-primary bg-white my-1" href=""><i class="fab fa-instagram"></i></a>
                                 <a class="btn btn-square text-primary bg-white my-1" href=""><i class="fab fa-linkedin-in"></i></a>
                             </div>
-                            <img class="img-fluid rounded w-100" src="../static/img/team-3.jpg" alt="">
+                            <img class="img-fluid rounded w-100" src="../../static/img/team-3.jpg" alt="">
                         </div>
                         <div class="px-4 py-3">
                             <h5 class="fw-bold m-0">Noah Michael</h5>
@@ -367,6 +367,6 @@
 {% endblock %}
 
 {% block scripts %}
-    {{ super() }}
+    {{ block.super }}
     <script>$('#main_page').toggleClass('active');</script>
 {% endblock %}

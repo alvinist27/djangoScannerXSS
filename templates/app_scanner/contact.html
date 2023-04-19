@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'app_scanner/base.html' %}
 
 {% block intro %}
     <div class="container-xxl py-5 bg-primary hero-header mb-5">
@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block content %}
-    {{ super() }}
+    {{ block.super }}
     <!-- Contact Start -->
     <div class="container-xxl py-5">
         <div class="container px-lg-5">
@@ -72,6 +72,6 @@
 {% endblock %}
 
 {% block scripts %}
-    {{ super() }}
+    {{ block.super }}
     <script>$('#contact_page').toggleClass('active');</script>
 {% endblock %}

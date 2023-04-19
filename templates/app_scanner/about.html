@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'app_scanner/base.html' %}
 
 {% block intro %}
     <div class="container-xxl py-5 bg-primary hero-header mb-5">
@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block content %}
-    {{ super() }}
+    {{ block.super }}
     <!-- About Start -->
     <div class="container-xxl py-5">
         <div class="container px-lg-5">
@@ -51,7 +51,7 @@
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <img class="img-fluid wow zoomIn" data-wow-delay="0.5s" src="../static/img/about.jpg">
+                    <img class="img-fluid wow zoomIn" data-wow-delay="0.5s" src="../../static/img/about.jpg">
                 </div>
             </div>
         </div>
@@ -60,6 +60,6 @@
 {% endblock %}
 
 {% block scripts %}
-    {{ super() }}
+    {{ block.super }}
     <script>$('#about_page').toggleClass('active');</script>
 {% endblock %}
