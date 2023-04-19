@@ -13,5 +13,5 @@ urlpatterns = [
     path('service/', views.service_view, name='service'),
     path('team/', views.team_view, name='team'),
     path('testimonial/', views.testimonial_view, name='testimonial'),
-    path('scan/', views.scan_view, name='scan'),
+    path('scan/', views.ContactFormView.as_view(), name='scan'),
 ]

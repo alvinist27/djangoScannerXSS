@@ -2,6 +2,9 @@
 
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
+from django.views.generic.edit import FormView
+
+from app_scanner.forms import ScanForm
 
 
 def main_view(request: HttpRequest) -> HttpResponse:
@@ -100,13 +103,12 @@ def testimonial_view(request: HttpRequest) -> HttpResponse:
     return render(request, 'app_scanner/testimonial.html')
 
 
-def scan_view(request: HttpRequest) -> HttpResponse:
-    """Display scan page.
+class ContactFormView(FormView):
+    """Display scan page."""
 
-    Args:
-        request: HttpRequest object.
+    form_class = ScanForm
+    success_url = '/'
+    template_name = 'app_scanner/scan.html'
 
-    Returns:
-        HttpResponse object.
-    """
-    return render(request, 'app_scanner/scan.html')
+    def form_valid(self, form):
+        return super().form_valid(form)
