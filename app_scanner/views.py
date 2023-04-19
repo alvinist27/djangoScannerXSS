@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.views.generic.edit import FormView
 
 from app_scanner.forms import ScanForm
+from app_scanner.process import ScanProcessSelenium
 
 
 def main_view(request: HttpRequest) -> HttpResponse:
@@ -110,5 +111,14 @@ class ContactFormView(FormView):
     success_url = '/'
     template_name = 'app_scanner/scan.html'
 
-    def form_valid(self, form):
-        return super().form_valid(form)
+    def form_valid(self, scan_form):
+        if scan_form.is_valid():
+            target_url = scan_form.cleaned_data['target_url']
+            scan_type = scan_form.cleaned_data['scan_type']
+            is_cloudflare = scan_form.cleaned_data['is_cloudflare']
+            is_one_page_scan = scan_form.cleaned_data['is_one_page_scan']
+            scan = ScanProcessSelenium('http://testphp.vulnweb.com/')
+            results = scan.scan_reflected_xss()
+            for result in results:
+                print(result)
+        return super().form_valid(scan_form)

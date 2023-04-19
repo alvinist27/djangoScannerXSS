@@ -1,6 +1,18 @@
 {% extends 'app_scanner/base.html' %}
 
 {% block intro %}
+    <style>
+        .submenu{
+            max-height: 0;
+            overflow-y: hidden;
+            transition: max-height .3s ease-in-out;
+        }
+
+        .submenu-show{
+            max-height: 1000px;
+        }
+    </style>
+
     <div class="container-xxl py-5 bg-primary hero-header mb-5">
         <div class="container my-5 py-5 px-lg-5">
             <div class="row g-5 py-5">
@@ -8,23 +20,43 @@
                     <h1 class="text-white animated zoomIn">XSSMaster Scan</h1>
                     <hr class="bg-white mx-auto mt-0" style="width: 90px;">
                     <div class="wow fadeInUp" data-wow-delay="0.3s">
-                        <form method="post">
-                            {{ scan_form.csrf_token }}
+                        <form method="POST">
+                            {% csrf_token %}
                             <div class="row g-3">
                                 <div class="col-12">
                                     <div class="form-floating">
-                                        {{ scan_form.target_url }}
-                                        <label>{{ scan_form.target_url.label }}</label>
+                                        {{ form.target_url }}
+                                        <label for="subject">Target URL</label>
                                     </div>
                                 </div>
                                 <div class="col-12">
                                     <div class="form-floating">
-                                        {{ scan_form.scan_type }}
-                                        <label>{{ scan_form.scan_type.label }}</label>
+                                        {{ form.scan_type }}
+                                        <label for="message">Scan type</label>
                                     </div>
                                 </div>
                                 <div class="col-12">
-                                    <button class="btn btn-outline-light w-25 py-3" type="submit">Submit</button>
+                                    <div class="exmenu">
+                                        <button type="submit" class="expander">Advanced Settings</button>
+                                    </div>
+                                    <div class="submenu">
+                                        <div class="col-md-6">
+                                            <div class="form-flex">
+                                                {{ form.is_cloudflare }}
+                                                <label for="name">Cloudflare bypass</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-flex">
+                                                {{ form.is_one_page_scan }}
+                                                <label for="email">One page checking</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <button class="btn btn-primary w-100 py-3" type="submit">Scan</button>
                                 </div>
                             </div>
                         </form>
@@ -33,4 +65,19 @@
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script>
+        let elements, count, i, thisParent;
+        elements = document.getElementsByClassName('expander');
+        count = elements.length;
+        for (i=0; i < count; i++)
+        elements[i].onclick = function(){
+            thisParent = this.parentNode;
+            thisParent.nextElementSibling.classList.toggle('submenu-show');
+            return false;
+        }
+    </script>
 {% endblock %}

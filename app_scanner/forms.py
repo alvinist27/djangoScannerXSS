@@ -8,7 +8,13 @@ from app_scanner.choices import XSSVulnerabilityTypeChoices
 class ScanForm(forms.Form):
     """Form for XSS scanning."""
 
-    target_url = forms.URLField()
-    scan_type = forms.ChoiceField(choices=XSSVulnerabilityTypeChoices.choices)
-    is_cloudflare = forms.BooleanField(initial=False)
-    is_one_page_scan = forms.BooleanField(initial=False)
+    target_url = forms.URLField(widget=forms.URLInput(attrs={
+        'placeholder': 'https://example.com/',
+        'class': 'form-control',
+    }))
+    scan_type = forms.ChoiceField(
+        choices=XSSVulnerabilityTypeChoices.choices,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
+    is_cloudflare = forms.BooleanField(initial=False, required=False)
+    is_one_page_scan = forms.BooleanField(initial=False, required=False)
