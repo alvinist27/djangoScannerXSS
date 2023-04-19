@@ -1,6 +1,6 @@
 """Module for app_shop models."""
 
-from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -13,13 +13,44 @@ DB_MAX_LENGTH = 255
 DB_LONG_MAX_LENGTH = 512
 
 
+class CustomUserManager(BaseUserManager):
+    """Custom user model manager where email is the unique auth identifier."""
+
+    def create_user(self, username: str, password: str, **extra_fields):
+        """Create and save a User with the given email and password."""
+        if not username:
+            raise ValueError(_('The Email must be set'))
+        username = self.normalize_email(username)
+        user = self.model(username=username, **extra_fields)
+        user.set_password(password)
+        user.save()
+        return user
+
+    def create_superuser(self, username: str, password: str, **extra_fields):
+        """Create and save a SuperUser with the given email and password."""
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError(_('Superuser must have is_staff=True.'))
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError(_('Superuser must have is_superuser=True.'))
+        return self.create_user(username, password, **extra_fields)
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     """Custom User model."""
 
-    email = models.EmailField(max_length=DB_MAX_LENGTH, unique=True, verbose_name=_('Email'))
-    date_create = models.DateTimeField(auto_now_add=True, verbose_name=_('Date create'))
+    username = models.EmailField(max_length=DB_MAX_LENGTH, unique=True, verbose_name=_('Email'))
+    date_joined = models.DateTimeField(auto_now_add=True, verbose_name=_('Date create'))
+    is_staff = models.BooleanField(default=False, verbose_name=_('Is staff'))
+    is_active = models.BooleanField(default=True, verbose_name=_('Is active'))
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = []
+
+    objects = CustomUserManager()
 
     class Meta:
         """Class with meta information of User model."""
@@ -33,7 +64,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         Returns:
             Email of the User object.
         """
-        return self.email
+        return self.username
 
 
 class ScanResult(models.Model):
@@ -53,13 +84,13 @@ class ScanResult(models.Model):
         verbose_name = _('Scan result')
         verbose_name_plural = _('Scan results')
 
-    def __str__(self) -> int:
+    def __str__(self) -> str:
         """Return string representation of the ScanResult model.
 
         Returns:
             ID of the ScanResult object.
         """
-        return self.id
+        return str(self.id)
 
 
 class Scan(models.Model):
@@ -79,13 +110,13 @@ class Scan(models.Model):
         verbose_name = _('Scan')
         verbose_name_plural = _('Scans')
 
-    def __str__(self) -> int:
+    def __str__(self) -> str:
         """Return string representation of the Scan model.
 
         Returns:
             ID of the Scan object.
         """
-        return self.id
+        return str(self.id)
 
 
 class Payload(models.Model):
@@ -100,10 +131,10 @@ class Payload(models.Model):
         verbose_name = _('Payload')
         verbose_name_plural = _('Payloads')
 
-    def __str__(self) -> int:
+    def __str__(self) -> str:
         """Return string representation of the Payload model.
 
         Returns:
             ID of the Payload object.
         """
-        return self.id
+        return str(self.id)
