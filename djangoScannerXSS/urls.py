@@ -8,3 +8,5 @@ urlpatterns = [
     path('', include('app_scanner.urls')),
     path('users/', include('app_users.urls')),
 ]
+
+handler404 = "app_scanner.views.not_found"

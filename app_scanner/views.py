@@ -32,7 +32,7 @@ def about_view(request: HttpRequest) -> HttpResponse:
     return render(request, 'app_scanner/about.html')
 
 
-def not_found(request: HttpRequest) -> HttpResponse:
+def not_found(request: HttpRequest, *args, **kwargs) -> HttpResponse:
     """Display page for 404 error handling.
 
     Args:
@@ -41,7 +41,7 @@ def not_found(request: HttpRequest) -> HttpResponse:
     Returns:
         HttpResponse object.
     """
-    return render(request, 'app_scanner/404.html')
+    return render(request, 'app_scanner/404.html', status=404)
 
 
 class ScanFormView(FormView):
