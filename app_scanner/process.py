@@ -8,17 +8,29 @@ from bs4 import BeautifulSoup
 from selenium.webdriver import Chrome, ChromeOptions
 from selenium.webdriver.common.by import By
 
-from app_scanner.choices import ScanStatusChoices, XSSVulnerabilityTypeChoices
-from app_scanner.models import Payload, Scan
+from app_scanner.choices import (
+    HEALTH_SEVERITY_SCORE, HIGH_SEVERITY_SCORE, MEDIUM_SEVERITY_SCORE, ScanRiskLevelChoices, ScanStatusChoices,
+    XSSVulnerabilityTypeChoices,
+)
+from app_scanner.models import Payload, Scan, ScanResult
 
 
 class ScanProcessSelenium:
-    def __init__(self, target_url: str, xss_type: str, user_id: int):
+    def __init__(
+            self,
+            target_url: str,
+            xss_type: str,
+            user_id: int,
+            is_cloudflare: bool,
+            is_one_page_scan: bool,
+    ):
         chrome_options = ChromeOptions()
         self.driver = Chrome(options=chrome_options)
         self.urls_count = 0
         self.internal_urls: Set = set()
         self.review: Dict = {}
+        self.is_cloudflare = is_cloudflare
+        self.is_one_page_scan = is_one_page_scan
         self.scan = Scan.objects.create(
             target_url=target_url,
             xss_type=xss_type,
@@ -107,7 +119,7 @@ class ScanProcessSelenium:
                     payload_exist_urls.add(url)
         return payload_exist_urls
 
-    def scan_reflected_xss(self):
+    def scan_reflected_xss(self, is_single_scan_type=True):
         vulnerable_urls = set()
         if not self.internal_urls:
             self.create_sitemap(self.scan.target_url)
@@ -121,9 +133,10 @@ class ScanProcessSelenium:
                         vulnerable_urls.add(url)
                         break
         self.review.update({'reflected': vulnerable_urls})
-        return self.review
+        if is_single_scan_type:
+            self.prepare_review()
 
-    def scan_stored_xss(self):
+    def scan_stored_xss(self, is_single_scan_type=True):
         vulnerable_urls = set()
         if not self.internal_urls:
             self.create_sitemap(self.scan.target_url)
@@ -140,9 +153,10 @@ class ScanProcessSelenium:
                             vulnerable_urls.add(url)
                             break
         self.review.update({'stored': vulnerable_urls})
-        return self.review
+        if is_single_scan_type:
+            self.prepare_review()
 
-    def scan_dom_based_xss(self):
+    def scan_dom_based_xss(self, is_single_scan_type=True):
         vulnerable_urls = set()
         if not self.internal_urls:
             self.create_sitemap(self.scan.target_url)
@@ -154,12 +168,30 @@ class ScanProcessSelenium:
                     vulnerable_urls.add(url)
                     break
         self.review.update({'DOM-based': vulnerable_urls})
-        return self.review
+        if is_single_scan_type:
+            self.prepare_review()
 
     def full_scan(self):
-        self.scan_reflected_xss()
-        self.scan_stored_xss()
-        self.scan_dom_based_xss()
+        self.scan_reflected_xss(is_single_scan_type=False)
+        self.scan_stored_xss(is_single_scan_type=False)
+        self.scan_dom_based_xss(is_single_scan_type=False)
+        self.prepare_review()
+
+    def prepare_review(self):
+        for xss_type, url_set in self.review.items():
+            self.review[xss_type] = list(url_set)
+        scan_result = ScanResult.objects.create(review=self.review)
+        xss_count = sum(len(category_urls) for category_urls in self.review.values())
+        severity = xss_count * 100 / len(self.internal_urls)
+        if severity >= HIGH_SEVERITY_SCORE:
+            scan_result.risk_level = ScanRiskLevelChoices.high
+        elif severity >= MEDIUM_SEVERITY_SCORE:
+            scan_result.risk_level = ScanRiskLevelChoices.medium
+        elif severity == HEALTH_SEVERITY_SCORE:
+            scan_result.risk_level = ScanRiskLevelChoices.healthy
+        else:
+            scan_result.risk_level = ScanRiskLevelChoices.low
+        scan_result.save()
 
 
 if __name__ == '__main__':
@@ -168,5 +200,7 @@ if __name__ == '__main__':
         target_url='http://testphp.vulnweb.com/',
         xss_type=XSSVulnerabilityTypeChoices.reflected[0],
         user_id=DB_USER_ID,
+        is_cloudflare=False,
+        is_one_page_scan=False,
     )
-    print(scan.scan_reflected_xss())
+    scan.scan_reflected_xss()
