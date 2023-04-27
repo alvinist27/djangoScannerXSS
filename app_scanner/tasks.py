@@ -14,9 +14,12 @@ from app_scanner.choices import (
     XSSVulnerabilityTypeChoices,
 )
 from app_scanner.models import Payload, Scan, ScanResult
+from djangoScannerXSS import celery_app
 
 
 class ScanProcessSelenium(Task):
+    name = 'ScanProcessSelenium'
+
     @staticmethod
     def is_valid_url(url: str) -> bool:
         parsed_url = urlparse(url)
@@ -59,11 +62,11 @@ class ScanProcessSelenium(Task):
             status=ScanStatusChoices.started,
         )
 
-        if self.xss_type == XSSVulnerabilityTypeChoices.full:
+        if self.scan.xss_type == XSSVulnerabilityTypeChoices.full:
             self.full_scan()
-        elif self.xss_type == XSSVulnerabilityTypeChoices.reflected:
+        elif self.scan.xss_type == XSSVulnerabilityTypeChoices.reflected:
             self.scan_reflected_xss()
-        elif self.xss_type == XSSVulnerabilityTypeChoices.stored:
+        elif self.scan.xss_type == XSSVulnerabilityTypeChoices.stored:
             self.scan_stored_xss()
         else:
             self.scan_dom_based_xss()
@@ -214,3 +217,5 @@ if __name__ == '__main__':
         is_cloudflare=False,
         is_one_page_scan=False,
     )
+
+celery_app.register_task(ScanProcessSelenium)

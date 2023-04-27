@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.views.generic.edit import FormView
 
 from app_scanner.forms import ScanForm
-from app_scanner.process import ScanProcessSelenium
+from app_scanner.tasks import ScanProcessSelenium
 
 
 def main_view(request: HttpRequest) -> HttpResponse:
