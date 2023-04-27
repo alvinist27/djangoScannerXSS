@@ -5,7 +5,6 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.views.generic.edit import FormView
 
-from app_scanner.choices import XSSVulnerabilityTypeChoices
 from app_scanner.forms import ScanForm
 from app_scanner.process import ScanProcessSelenium
 
@@ -56,19 +55,12 @@ class ScanFormView(LoginRequiredMixin, FormView):
     def form_valid(self, scan_form):
         if scan_form.is_valid():
             scan_type = scan_form.cleaned_data['scan_type']
-            scan = ScanProcessSelenium(
+            task = ScanProcessSelenium()
+            task.delay(
                 target_url=scan_form.cleaned_data['target_url'],
                 xss_type=scan_type,
                 user_id=self.request.user.id,
                 is_cloudflare=scan_form.cleaned_data['is_cloudflare'],
                 is_one_page_scan=scan_form.cleaned_data['is_one_page_scan'],
             )
-            if scan_type == XSSVulnerabilityTypeChoices.full:
-                scan.full_scan()
-            elif scan_type == XSSVulnerabilityTypeChoices.reflected:
-                scan.scan_reflected_xss()
-            elif scan_type == XSSVulnerabilityTypeChoices.stored:
-                scan.scan_stored_xss()
-            else:
-                scan.scan_dom_based_xss()
         return super().form_valid(scan_form)

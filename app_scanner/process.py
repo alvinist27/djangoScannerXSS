@@ -5,6 +5,7 @@ from urllib.parse import urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
+from celery import Task
 from selenium.webdriver import Chrome, ChromeOptions
 from selenium.webdriver.common.by import By
 
@@ -15,8 +16,28 @@ from app_scanner.choices import (
 from app_scanner.models import Payload, Scan, ScanResult
 
 
-class ScanProcessSelenium:
-    def __init__(
+class ScanProcessSelenium(Task):
+    @staticmethod
+    def is_valid_url(url: str) -> bool:
+        parsed_url = urlparse(url)
+        return bool(parsed_url.netloc) and bool(parsed_url.scheme)
+
+    @staticmethod
+    def get_form_info(form):
+        fields = []
+        for field_name in ('input', 'textarea'):
+            for field in form.find_all(field_name):
+                fields.append({
+                    'name': field.attrs.get('name', ''),
+                    'type': field.attrs.get('type', 'text'),
+                })
+        return {
+            'fields': fields,
+            'action': form.attrs.get('action', '').lower(),
+            'method': form.attrs.get('method', 'get').lower(),
+        }
+
+    def run(
             self,
             target_url: str,
             xss_type: str,
@@ -38,25 +59,14 @@ class ScanProcessSelenium:
             status=ScanStatusChoices.started,
         )
 
-    @staticmethod
-    def is_valid_url(url: str) -> bool:
-        parsed_url = urlparse(url)
-        return bool(parsed_url.netloc) and bool(parsed_url.scheme)
-
-    @staticmethod
-    def get_form_info(form):
-        fields = []
-        for field_name in ('input', 'textarea'):
-            for field in form.find_all(field_name):
-                fields.append({
-                    'name': field.attrs.get('name', ''),
-                    'type': field.attrs.get('type', 'text'),
-                })
-        return {
-            'fields': fields,
-            'action': form.attrs.get('action', '').lower(),
-            'method': form.attrs.get('method', 'get').lower(),
-        }
+        if self.xss_type == XSSVulnerabilityTypeChoices.full:
+            self.full_scan()
+        elif self.xss_type == XSSVulnerabilityTypeChoices.reflected:
+            self.scan_reflected_xss()
+        elif self.xss_type == XSSVulnerabilityTypeChoices.stored:
+            self.scan_stored_xss()
+        else:
+            self.scan_dom_based_xss()
 
     def get_links(self, url: str) -> Set[str]:
         urls = set()
@@ -196,11 +206,11 @@ class ScanProcessSelenium:
 
 if __name__ == '__main__':
     DB_USER_ID = 1
-    scan = ScanProcessSelenium(
+    task = ScanProcessSelenium()
+    task.delay(
         target_url='http://testphp.vulnweb.com/',
         xss_type=XSSVulnerabilityTypeChoices.reflected[0],
         user_id=DB_USER_ID,
         is_cloudflare=False,
         is_one_page_scan=False,
     )
-    scan.scan_reflected_xss()
