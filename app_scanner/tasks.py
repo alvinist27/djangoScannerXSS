@@ -1,3 +1,5 @@
+"""Module with defining celery tasks."""
+
 from random import sample
 from string import ascii_lowercase, ascii_uppercase
 from typing import Dict, Set

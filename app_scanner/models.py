@@ -3,6 +3,7 @@
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from app_scanner.choices import ScanRiskLevelChoices, ScanStatusChoices, XSSVulnerabilityTypeChoices
@@ -87,7 +88,7 @@ class ScanResult(models.Model):
         Returns:
             ID of the ScanResult object.
         """
-        return str(self.id)
+        return f'ScanResult №{self.id}'
 
 
 class Scan(models.Model):
@@ -113,7 +114,15 @@ class Scan(models.Model):
         Returns:
             ID of the Scan object.
         """
-        return str(self.id)
+        return f'Scan №{self.id}'
+
+    def get_absolute_url(self) -> str:
+        """Calculate the canonical URL for Scan object.
+
+        Returns:
+            String to refer to the object over HTTP.
+        """
+        return reverse('scan', kwargs={'pk': self.pk})
 
 
 class Payload(models.Model):
@@ -134,4 +143,4 @@ class Payload(models.Model):
         Returns:
             ID of the Payload object.
         """
-        return str(self.id)
+        return f'Payload №{self.id}'
