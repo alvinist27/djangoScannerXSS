@@ -16,7 +16,7 @@ class PayloadAdmin(admin.ModelAdmin):
 class ScanResultAdmin(admin.ModelAdmin):
     """Class for admin view for ScanResult objects."""
 
-    list_display = ('id', 'risk_level', 'review_file_path')
+    list_display = ('id', 'risk_level', 'review_file')
     list_filter = ('risk_level',)
 
 

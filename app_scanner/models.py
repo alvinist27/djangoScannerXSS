@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from app_scanner.choices import ScanRiskLevelChoices, ScanStatusChoices, XSSVulnerabilityTypeChoices
 from djangoScannerXSS.settings import REVIEW_DIR
 
-DB_MAX_LENGTH = 255
+DB_MAX_LENGTH = 256
 DB_LONG_MAX_LENGTH = 512
 
 
@@ -74,7 +74,7 @@ class ScanResult(models.Model):
         verbose_name=_('Risk level'),
     )
     review = models.JSONField(verbose_name=_('Review'))
-    review_file_path = models.FilePathField(path=REVIEW_DIR, blank=True, verbose_name=_('File review'))
+    review_file = models.FileField()
 
     class Meta:
         """Class with meta information of ScanResult model."""
