@@ -2,6 +2,11 @@
 
 from django.db.models import TextChoices
 
+HEALTH_SEVERITY_SCORE = 0
+LOW_SEVERITY_SCORE = 5
+MEDIUM_SEVERITY_SCORE = 10
+HIGH_SEVERITY_SCORE = 25
+
 
 class XSSVulnerabilityTypeChoices(TextChoices):
     """Choices for selecting XSS vulnerability type."""

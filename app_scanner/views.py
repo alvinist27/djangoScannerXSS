@@ -1,11 +1,12 @@
 """Module for app_users views."""
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.views.generic.edit import FormView
 
 from app_scanner.forms import ScanForm
-from app_scanner.process import ScanProcessSelenium
+from app_scanner.tasks import ScanProcessSelenium
 
 
 def main_view(request: HttpRequest) -> HttpResponse:
@@ -44,7 +45,7 @@ def not_found(request: HttpRequest, *args, **kwargs) -> HttpResponse:
     return render(request, 'app_scanner/404.html', status=404)
 
 
-class ScanFormView(FormView):
+class ScanFormView(LoginRequiredMixin, FormView):
     """Display scan page."""
 
     form_class = ScanForm
@@ -53,12 +54,13 @@ class ScanFormView(FormView):
 
     def form_valid(self, scan_form):
         if scan_form.is_valid():
-            target_url = scan_form.cleaned_data['target_url']
             scan_type = scan_form.cleaned_data['scan_type']
-            is_cloudflare = scan_form.cleaned_data['is_cloudflare']
-            is_one_page_scan = scan_form.cleaned_data['is_one_page_scan']
-            scan = ScanProcessSelenium('http://testphp.vulnweb.com/')
-            results = scan.scan_reflected_xss()
-            for result in results:
-                print(result)
+            task = ScanProcessSelenium()
+            task.delay(
+                target_url=scan_form.cleaned_data['target_url'],
+                xss_type=scan_type,
+                user_id=self.request.user.id,
+                is_cloudflare=scan_form.cleaned_data['is_cloudflare'],
+                is_one_page_scan=scan_form.cleaned_data['is_one_page_scan'],
+            )
         return super().form_valid(scan_form)
