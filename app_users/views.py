@@ -40,7 +40,7 @@ class ProfileScanListView(LoginRequiredMixin, ListView):
     template_name = 'app_users/profile.html'
 
     def get_queryset(self):
-        return Scan.objects.filter(user_id=self.request.user.id)
+        return Scan.objects.filter(user_id=self.request.user.id).order_by('-id')
 
 
 class ScanDetailView(LoginRequiredMixin, DetailView):

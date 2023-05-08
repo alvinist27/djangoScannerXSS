@@ -122,7 +122,7 @@ class Scan(models.Model):
         Returns:
             String to refer to the object over HTTP.
         """
-        return reverse('scan', kwargs={'pk': self.pk})
+        return reverse('users:scan', kwargs={'pk': self.pk})
 
 
 class Payload(models.Model):

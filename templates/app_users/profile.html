@@ -34,10 +34,10 @@
                     <div class="wow fadeInUp" data-wow-delay="0.3s">
                         {% for user_scan in user_scans %}
                             <li>
-                                <a href="{{ user_scan.get_absolute_url }}">{{ user_scan.id }}</a>
-                                <p>{{ user_scan.target_url }}</p>
-                                <p>{{ user_scan.xss_type }}</p>
-                                <p>{{ user_scan.status }}</p>
+                                <a href="{{ user_scan.get_absolute_url }}"> Scan №{{ user_scan.id }}</a>
+                                <p>URL: {{ user_scan.target_url }}</p>
+                                <p>Status: {{ user_scan.get_status_display }}</p>
+                                <p>Scan type: {{ user_scan.get_xss_type_display }}</p>
                             </li>
                         {% endfor %}
                     </div>

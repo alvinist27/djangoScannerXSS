@@ -3,6 +3,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
+from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 
 from app_scanner.forms import ScanForm
@@ -49,7 +50,7 @@ class ScanFormView(LoginRequiredMixin, FormView):
     """Display scan page."""
 
     form_class = ScanForm
-    success_url = '/'
+    success_url = reverse_lazy('users:profile')
     template_name = 'app_scanner/scan.html'
 
     def form_valid(self, scan_form):

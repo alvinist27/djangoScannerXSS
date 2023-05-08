@@ -4,6 +4,8 @@ from django.urls import path
 
 from app_scanner import views
 
+app_name = 'scanner'
+
 urlpatterns = [
     path('', views.main_view, name='main'),
     path('about/', views.about_view, name='about'),

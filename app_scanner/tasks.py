@@ -72,6 +72,8 @@ class ScanProcessSelenium(Task):
             self.scan_stored_xss()
         else:
             self.scan_dom_based_xss()
+        self.scan.status = ScanStatusChoices.completed
+        self.scan.save()
 
     def get_links(self, url: str) -> Set[str]:
         urls = set()
@@ -135,7 +137,7 @@ class ScanProcessSelenium(Task):
         return payload_exist_urls
 
     def scan_reflected_xss(self, is_single_scan_type=True):
-        vulnerable_urls = set()
+        vulnerable_urls = []
         if not self.internal_urls:
             self.create_sitemap(self.scan.target_url)
         for url in self.internal_urls:
@@ -145,14 +147,14 @@ class ScanProcessSelenium(Task):
                     form_info = self.get_form_info(form)
                     submit_form_response = self.submit_form(form_info, script.body).content.decode()
                     if script.body in submit_form_response:
-                        vulnerable_urls.add({url: script.recommendation})
+                        vulnerable_urls.append({url: script.recommendation})
                         break
         self.review.update({'reflected': vulnerable_urls})
         if is_single_scan_type:
             self.prepare_review()
 
     def scan_stored_xss(self, is_single_scan_type=True):
-        vulnerable_urls = set()
+        vulnerable_urls = []
         if not self.internal_urls:
             self.create_sitemap(self.scan.target_url)
         for url in self.internal_urls:
@@ -165,14 +167,14 @@ class ScanProcessSelenium(Task):
                     for potential_url in payload_exist_urls:
                         self.driver.get(potential_url)
                         if script.body in self.driver.page_source:
-                            vulnerable_urls.add({url: script.recommendation})
+                            vulnerable_urls.append({url: script.recommendation})
                             break
         self.review.update({'stored': vulnerable_urls})
         if is_single_scan_type:
             self.prepare_review()
 
     def scan_dom_based_xss(self, is_single_scan_type=True):
-        vulnerable_urls = set()
+        vulnerable_urls = []
         if not self.internal_urls:
             self.create_sitemap(self.scan.target_url)
         for url in self.internal_urls:
@@ -180,7 +182,7 @@ class ScanProcessSelenium(Task):
                 target_url = f'{url}#{script}'
                 self.driver.get(target_url)
                 if script.body in self.driver.page_source:
-                    vulnerable_urls.add({url: script.recommendation})
+                    vulnerable_urls.append({url: script.recommendation})
                     break
         self.review.update({'DOM-based': vulnerable_urls})
         if is_single_scan_type:

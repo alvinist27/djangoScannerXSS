@@ -32,15 +32,18 @@
                         <h2 class="mt-2">{{ scan }}</h2>
                     </div>
                     <div class="wow fadeInUp" data-wow-delay="0.3s">
-                        <p>{{ scan.target_url }}</p>
-                        <p>{{ scan.xss_type }}</p>
-                        <p>{{ scan.date_start }}</p>
-                        <p>{{ scan.date_end }}</p>
-                        <p>{{ scan.status }}</p>
-                        <p>result</p>
-                        <p>{{ scan.result.risk_level }}</p>
-                        <p>{{ scan.result.review }}</p>
-                        <p>{{ scan.result.review_file_path }}</p>
+                        <h3>Scan settings</h3>
+                        <p>URL: {{ scan.target_url }}</p>
+                        <p>Status: {{ scan.get_status_display }}</p>
+                        <p>Scan type: {{ scan.get_xss_type_display }}</p>
+                        <p>Date start: {{ scan.date_start }}</p>
+                        <p>Date end: {{ scan.date_end }}</p>
+                        {% if scan.result %}
+                            <h3>Result</h3>
+                            <p>Risk level: {{ scan.result.get_risk_level_display }}</p>
+                            <p>Review: {{ scan.result.review }}</p>
+                            <p>File: <a href="{{ scan.result.review_file.url }}">Review file</a></p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
