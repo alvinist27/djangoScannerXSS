@@ -135,7 +135,9 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-REVIEW_DIR = os.path.join(MEDIA_ROOT, 'reviews')
+REVIEW_DIR_NAME = 'reviews'
+REVIEW_DIR = os.path.join(MEDIA_ROOT, REVIEW_DIR_NAME)
+os.makedirs(REVIEW_DIR, exist_ok=True)
 
 LOCALE_PATHS = (
     os.path.join(os.path.dirname(__file__), '../app_scanner/locale'),

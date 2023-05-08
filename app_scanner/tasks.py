@@ -1,5 +1,6 @@
 """Module with defining celery tasks."""
 
+import os
 from random import sample
 from string import ascii_lowercase, ascii_uppercase
 from typing import Dict, Set
@@ -8,6 +9,8 @@ from urllib.parse import urljoin, urlparse
 import requests
 from bs4 import BeautifulSoup
 from celery import Task
+from django.shortcuts import render
+from django.utils.timezone import now
 from selenium.webdriver import Chrome, ChromeOptions
 from selenium.webdriver.common.by import By
 
@@ -17,6 +20,7 @@ from app_scanner.choices import (
 )
 from app_scanner.models import Payload, Scan, ScanResult
 from djangoScannerXSS import celery_app
+from djangoScannerXSS.settings import REVIEW_DIR, REVIEW_DIR_NAME
 
 
 class ScanProcessSelenium(Task):
@@ -63,6 +67,7 @@ class ScanProcessSelenium(Task):
             user_id=user_id,
             status=ScanStatusChoices.started,
         )
+        self.payloads = Payload.objects.all()
 
         if self.scan.xss_type == XSSVulnerabilityTypeChoices.full:
             self.full_scan()
@@ -72,8 +77,6 @@ class ScanProcessSelenium(Task):
             self.scan_stored_xss()
         else:
             self.scan_dom_based_xss()
-        self.scan.status = ScanStatusChoices.completed
-        self.scan.save()
 
     def get_links(self, url: str) -> Set[str]:
         urls = set()
@@ -86,7 +89,12 @@ class ScanProcessSelenium(Task):
                 continue
             parsed_href = urlparse(urljoin(url, href))
             href = f'{parsed_href.scheme}://{parsed_href.netloc}{parsed_href.path}'
-            if domain_name not in href and not self.is_valid_url(href) and href in self.internal_urls:
+            if (
+                domain_name not in href or
+                not self.is_valid_url(href) or
+                href in self.internal_urls or
+                'http' not in parsed_href.scheme
+            ):
                 continue
             urls.add(href)
             self.internal_urls.add(href)
@@ -142,16 +150,20 @@ class ScanProcessSelenium(Task):
             self.create_sitemap(self.scan.target_url)
         for url in self.internal_urls:
             page_forms = self.get_page_forms(url)
-            for script in Payload.objects.all():
+            for script in self.payloads:
                 for form in page_forms:
                     form_info = self.get_form_info(form)
                     submit_form_response = self.submit_form(form_info, script.body).content.decode()
                     if script.body in submit_form_response:
-                        vulnerable_urls.append({url: script.recommendation})
+                        vulnerable_urls.append({
+                            'url': url,
+                            'script': script.body,
+                            'recommendation': script.recommendation,
+                        })
                         break
         self.review.update({'reflected': vulnerable_urls})
         if is_single_scan_type:
-            self.prepare_review()
+            self.prepare_review_file()
 
     def scan_stored_xss(self, is_single_scan_type=True):
         vulnerable_urls = []
@@ -160,55 +172,80 @@ class ScanProcessSelenium(Task):
         for url in self.internal_urls:
             page_forms = self.get_page_forms(url)
             payload_exist_urls = self.test_stored_xss(page_forms=page_forms)
-            for script in Payload.objects.all():
+            for script in self.payloads:
                 for form in page_forms:
                     form_info = self.get_form_info(form)
                     self.submit_form(form_info, script.body).content.decode()
                     for potential_url in payload_exist_urls:
                         self.driver.get(potential_url)
                         if script.body in self.driver.page_source:
-                            vulnerable_urls.append({url: script.recommendation})
+                            vulnerable_urls.append({
+                                'url': url,
+                                'script': script.body,
+                                'recommendation': script.recommendation,
+                            })
                             break
         self.review.update({'stored': vulnerable_urls})
         if is_single_scan_type:
-            self.prepare_review()
+            self.prepare_review_file()
 
     def scan_dom_based_xss(self, is_single_scan_type=True):
         vulnerable_urls = []
         if not self.internal_urls:
             self.create_sitemap(self.scan.target_url)
         for url in self.internal_urls:
-            for script in Payload.objects.all():
-                target_url = f'{url}#{script}'
+            for script in self.payloads:
+                target_url = f'{url}#{script.body}'
                 self.driver.get(target_url)
                 if script.body in self.driver.page_source:
-                    vulnerable_urls.append({url: script.recommendation})
+                    vulnerable_urls.append({
+                        'url':url,
+                        'script': script.body,
+                        'recommendation': script.recommendation,
+                    })
                     break
         self.review.update({'DOM-based': vulnerable_urls})
         if is_single_scan_type:
-            self.prepare_review()
+            self.prepare_review_file()
 
     def full_scan(self):
         self.scan_reflected_xss(is_single_scan_type=False)
         self.scan_stored_xss(is_single_scan_type=False)
         self.scan_dom_based_xss(is_single_scan_type=False)
-        self.prepare_review()
+        self.prepare_review_file()
 
-    def prepare_review(self):
+    def prepare_review_file(self):
+        self.driver.quit()
         for xss_type, url_set in self.review.items():
             self.review[xss_type] = list(url_set)
-        scan_result = ScanResult.objects.create(review=self.review)
+        self.scan.result = ScanResult.objects.create(review=self.review)
         xss_count = sum(len(category_urls) for category_urls in self.review.values())
         severity = xss_count * 100 / len(self.internal_urls)
         if severity >= HIGH_SEVERITY_SCORE:
-            scan_result.risk_level = ScanRiskLevelChoices.high
+            self.scan.result.risk_level = ScanRiskLevelChoices.high
         elif severity >= MEDIUM_SEVERITY_SCORE:
-            scan_result.risk_level = ScanRiskLevelChoices.medium
+            self.scan.result.risk_level = ScanRiskLevelChoices.medium
         elif severity == HEALTH_SEVERITY_SCORE:
-            scan_result.risk_level = ScanRiskLevelChoices.healthy
+            self.scan.result.risk_level = ScanRiskLevelChoices.healthy
         else:
-            scan_result.risk_level = ScanRiskLevelChoices.low
-        scan_result.save()
+            self.scan.result.risk_level = ScanRiskLevelChoices.low
+        self.scan.status = ScanStatusChoices.completed
+
+        html_output = render(None, 'app_scanner/review.html', {
+            'target_url': self.scan.target_url,
+            'xss_type': self.scan.get_xss_type_display(),
+            'review_data': self.review,
+            'risk_level_letter': self.scan.result.risk_level,
+            'risk_level': self.scan.result.get_risk_level_display(),
+        })
+        review_filename = f'scan_{self.scan.id}.html'
+        review_file_path = os.path.join(REVIEW_DIR, review_filename)
+        with open(review_file_path, 'wb') as review_file:
+            review_file.write(html_output.content)
+        self.scan.date_end = now()
+        self.scan.result.review_file = os.path.join(REVIEW_DIR_NAME, review_filename)
+        self.scan.result.save(update_fields=('risk_level', 'review_file'))
+        self.scan.save(update_fields=('status', 'date_end', 'result'))
 
 
 if __name__ == '__main__':

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scan result</title>
+</head>
+<body>
+    <h1>{{ target_url }}: {{ xss_type }}</h1>
+    <h2>Risk level {{ risk_level_letter }} ({{ risk_level }})</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Ссылка</th>
+          <th>Скрипт</th>
+          <th>Рекомендация</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% if review_data|length %}
+        {% for review_item in review_data %}
+          <tr>
+            <td>{{ review_item.url }}</td>
+            <td>{{ review_item.script }}</td>
+            <td>{{ review_item.recommendation }}</td>
+          </tr>
+        {% endfor %}
+        {% else %}
+            <p>XSS-уязвимостей не обнаружено</p>
+        {% endif %}
+      </tbody>
+    </table>
+</body>
+</html>
