@@ -53,14 +53,13 @@ class ScanFormView(LoginRequiredMixin, FormView):
     template_name = 'app_scanner/scan.html'
 
     def form_valid(self, scan_form):
-        if scan_form.is_valid():
-            scan_type = scan_form.cleaned_data['scan_type']
-            task = ScanProcessSelenium()
-            task.delay(
-                target_url=scan_form.cleaned_data['target_url'],
-                xss_type=scan_type,
-                user_id=self.request.user.id,
-                is_cloudflare=scan_form.cleaned_data['is_cloudflare'],
-                is_one_page_scan=scan_form.cleaned_data['is_one_page_scan'],
-            )
+        scan_type = scan_form.cleaned_data['scan_type']
+        task = ScanProcessSelenium()
+        task.delay(
+            target_url=scan_form.cleaned_data['target_url'],
+            xss_type=scan_type,
+            user_id=self.request.user.id,
+            is_cloudflare=scan_form.cleaned_data['is_cloudflare'],
+            is_one_page_scan=scan_form.cleaned_data['is_one_page_scan'],
+        )
         return super().form_valid(scan_form)

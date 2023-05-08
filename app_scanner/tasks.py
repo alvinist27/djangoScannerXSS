@@ -145,7 +145,7 @@ class ScanProcessSelenium(Task):
                     form_info = self.get_form_info(form)
                     submit_form_response = self.submit_form(form_info, script.body).content.decode()
                     if script.body in submit_form_response:
-                        vulnerable_urls.add(url)
+                        vulnerable_urls.add({url: script.recommendation})
                         break
         self.review.update({'reflected': vulnerable_urls})
         if is_single_scan_type:
@@ -165,7 +165,7 @@ class ScanProcessSelenium(Task):
                     for potential_url in payload_exist_urls:
                         self.driver.get(potential_url)
                         if script.body in self.driver.page_source:
-                            vulnerable_urls.add(url)
+                            vulnerable_urls.add({url: script.recommendation})
                             break
         self.review.update({'stored': vulnerable_urls})
         if is_single_scan_type:
@@ -180,7 +180,7 @@ class ScanProcessSelenium(Task):
                 target_url = f'{url}#{script}'
                 self.driver.get(target_url)
                 if script.body in self.driver.page_source:
-                    vulnerable_urls.add(url)
+                    vulnerable_urls.add({url: script.recommendation})
                     break
         self.review.update({'DOM-based': vulnerable_urls})
         if is_single_scan_type:
