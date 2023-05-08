@@ -149,8 +149,11 @@ class ScanProcessSelenium(Task):
         if not self.internal_urls:
             self.create_sitemap(self.scan.target_url)
         for url in self.internal_urls:
+            is_vulnerable = False
             page_forms = self.get_page_forms(url)
             for script in self.payloads:
+                if is_vulnerable:
+                    break
                 for form in page_forms:
                     form_info = self.get_form_info(form)
                     submit_form_response = self.submit_form(form_info, script.body).content.decode()
@@ -160,6 +163,7 @@ class ScanProcessSelenium(Task):
                             'script': script.body,
                             'recommendation': script.recommendation,
                         })
+                        is_vulnerable = True
                         break
         self.review.update({'reflected': vulnerable_urls})
         if is_single_scan_type:
@@ -170,9 +174,12 @@ class ScanProcessSelenium(Task):
         if not self.internal_urls:
             self.create_sitemap(self.scan.target_url)
         for url in self.internal_urls:
+            is_vulnerable = False
             page_forms = self.get_page_forms(url)
             payload_exist_urls = self.test_stored_xss(page_forms=page_forms)
             for script in self.payloads:
+                if is_vulnerable:
+                    break
                 for form in page_forms:
                     form_info = self.get_form_info(form)
                     self.submit_form(form_info, script.body).content.decode()
@@ -184,7 +191,10 @@ class ScanProcessSelenium(Task):
                                 'script': script.body,
                                 'recommendation': script.recommendation,
                             })
+                            is_vulnerable = True
                             break
+                    if is_vulnerable:
+                        break
         self.review.update({'stored': vulnerable_urls})
         if is_single_scan_type:
             self.prepare_review_file()

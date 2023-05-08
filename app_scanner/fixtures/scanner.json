@@ -1,0 +1,135 @@
+[
+{
+    "model": "app_scanner.user",
+    "pk": 1,
+    "fields": {
+        "password": "pbkdf2_sha256$600000$3Ns2dj7lDVkdw8szg5kVF4$CcUlfBEA4HF+xTArhxnlsZG7xtEWuKQX9jT6JxZKkCo=",
+        "last_login": "2023-05-08T20:40:19.775Z",
+        "is_superuser": true,
+        "username": "admin@admin.com",
+        "date_joined": "2023-05-08T20:39:24.712Z",
+        "is_staff": true,
+        "is_active": true,
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "app_scanner.scanresult",
+    "pk": 2,
+    "fields": {
+        "risk_level": "D",
+        "review": {
+            "reflected": [
+                {
+                    "url": "http://testphp.vulnweb.com/cart.php",
+                    "script": "<script\\x20type=\"text/javascript\">javascript:alert(1);</script>",
+                    "recommendation": "Javascript execution error. Use input validation: Validate all input data received from users, especially input that will be displayed on your website. This can be done by using regular expressions, input filters, or a validation library."
+                },
+                {
+                    "url": "http://testphp.vulnweb.com/login.php",
+                    "script": "<script\\x20type=\"text/javascript\">javascript:alert(1);</script>",
+                    "recommendation": "Javascript execution error. Use input validation: Validate all input data received from users, especially input that will be displayed on your website. This can be done by using regular expressions, input filters, or a validation library."
+                },
+                {
+                    "url": "http://testphp.vulnweb.com/userinfo.php",
+                    "script": "<script\\x20type=\"text/javascript\">javascript:alert(1);</script>",
+                    "recommendation": "Javascript execution error. Use input validation: Validate all input data received from users, especially input that will be displayed on your website. This can be done by using regular expressions, input filters, or a validation library."
+                },
+                {
+                    "url": "http://testphp.vulnweb.com/disclaimer.php",
+                    "script": "<script\\x20type=\"text/javascript\">javascript:alert(1);</script>",
+                    "recommendation": "Javascript execution error. Use input validation: Validate all input data received from users, especially input that will be displayed on your website. This can be done by using regular expressions, input filters, or a validation library."
+                },
+                {
+                    "url": "http://testphp.vulnweb.com/index.php",
+                    "script": "<script\\x20type=\"text/javascript\">javascript:alert(1);</script>",
+                    "recommendation": "Javascript execution error. Use input validation: Validate all input data received from users, especially input that will be displayed on your website. This can be done by using regular expressions, input filters, or a validation library."
+                },
+                {
+                    "url": "http://testphp.vulnweb.com/artists.php",
+                    "script": "<script\\x20type=\"text/javascript\">javascript:alert(1);</script>",
+                    "recommendation": "Javascript execution error. Use input validation: Validate all input data received from users, especially input that will be displayed on your website. This can be done by using regular expressions, input filters, or a validation library."
+                },
+                {
+                    "url": "http://testphp.vulnweb.com/signup.php",
+                    "script": "<script\\x20type=\"text/javascript\">javascript:alert(1);</script>",
+                    "recommendation": "Javascript execution error. Use input validation: Validate all input data received from users, especially input that will be displayed on your website. This can be done by using regular expressions, input filters, or a validation library."
+                },
+                {
+                    "url": "http://testphp.vulnweb.com/categories.php",
+                    "script": "<script\\x20type=\"text/javascript\">javascript:alert(1);</script>",
+                    "recommendation": "Javascript execution error. Use input validation: Validate all input data received from users, especially input that will be displayed on your website. This can be done by using regular expressions, input filters, or a validation library."
+                },
+                {
+                    "url": "http://testphp.vulnweb.com/guestbook.php",
+                    "script": "<script\\x20type=\"text/javascript\">javascript:alert(1);</script>",
+                    "recommendation": "Javascript execution error. Use input validation: Validate all input data received from users, especially input that will be displayed on your website. This can be done by using regular expressions, input filters, or a validation library."
+                }
+            ]
+        },
+        "review_file": "reviews/scan_3.html"
+    }
+},
+{
+    "model": "app_scanner.scan",
+    "pk": 3,
+    "fields": {
+        "target_url": "http://testphp.vulnweb.com/",
+        "xss_type": "R",
+        "user": 1,
+        "date_start": "2023-05-08T21:37:27.895Z",
+        "date_end": "2023-05-08T21:39:31.509Z",
+        "status": "C",
+        "result": 2
+    }
+},
+{
+    "model": "app_scanner.payload",
+    "pk": 1,
+    "fields": {
+        "body": "<script\\x20type=\"text/javascript\">javascript:alert(1);</script>",
+        "recommendation": "Javascript execution error. Use input validation: Validate all input data received from users, especially input that will be displayed on your website. This can be done by using regular expressions, input filters, or a validation library."
+    }
+},
+{
+    "model": "app_scanner.payload",
+    "pk": 2,
+    "fields": {
+        "body": "<script src=\"data:\\xE0\\xA4\\x98,javascript:alert(1)\"></script>.",
+        "recommendation": "Javascript execution error. Use output encoding: Encode all output that will be displayed on your website to prevent malicious code injection. For example, encode special characters such as <, >, \", ', and & to their corresponding HTML entities."
+    }
+},
+{
+    "model": "app_scanner.payload",
+    "pk": 3,
+    "fields": {
+        "body": "\"`'><script>\\xE2\\x80\\xAFjavascript:alert(1)</script>",
+        "recommendation": "Need to make sure that input fields don't accept special characters like \"<\", \">\", \"&\", \"'\", and \"\"\" without escaping. You can use character escape functions like mysqli_real_escape_string() for SQL- requests and htmlentities() for HTML code."
+    }
+},
+{
+    "model": "app_scanner.payload",
+    "pk": 4,
+    "fields": {
+        "body": "<IMG SRC=`javascript:javascript:alert(1)`>",
+        "recommendation": "To avoid this vulnerability, it is necessary to perform validation and filtering of incoming data on the server side. In this case, you should make sure that the images loaded on the page cannot execute JavaScript code.\r\n\r\nOne way to protect it is to use the src attribute with only trusted and verified image URLs. For example, you can check that src starts with \"http://\" or \"https://\" and that the URL is valid and safe."
+    }
+},
+{
+    "model": "app_scanner.payload",
+    "pk": 5,
+    "fields": {
+        "body": "<a href=\"jav&#97ascript:javascript:alert(1)\">test1</a>",
+        "recommendation": "To avoid this vulnerability, validate and filter incoming data on the server side. In this case, you need to check that the links placed on the page cannot execute JavaScript code.\r\n\r\nOne way to protect it is to use the href attribute and only specify trusted and trusted URLs. For example, you can check that the href starts with \"http://\" or \"https://\" and that the URL is valid and safe.\r\n\r\nYou can also use special libraries and frameworks that provide link-safe functionality, such as the PHP HTML Purifier library or the Ruby on Rails framework."
+    }
+},
+{
+    "model": "app_scanner.payload",
+    "pk": 6,
+    "fields": {
+        "body": "<%<!--'%><script>alert(1);</script -->",
+        "recommendation": "To avoid this vulnerability, it is necessary to perform validation and filtering of incoming data on the server side. In this case, you need to check that the incoming data does not contain unwanted characters that can be used to execute arbitrary code.\r\n\r\nOne way to protect is to use special libraries and frameworks that automatically filter and escape suspicious characters. For example, you can use the PHP HTML Purifier library or the Ruby on Rails framework, which provide secure handling of HTML and other inputs.\r\n\r\nIn addition, you should use only reliable and proven libraries and frameworks, as well as monitor security updates and install them in a timely manner."
+    }
+}
+]

@@ -6,10 +6,11 @@
 </head>
 <body>
     <h1>{{ target_url }}: {{ xss_type }}</h1>
-    <h2>Risk level {{ risk_level_letter }} ({{ risk_level }})</h2>
+    <h2>Risk level: {{ risk_level_letter }} ({{ risk_level }})</h2>
     <table>
       <thead>
         <tr>
+          <th>Тип</th>
           <th>Ссылка</th>
           <th>Скрипт</th>
           <th>Рекомендация</th>
@@ -17,12 +18,15 @@
       </thead>
       <tbody>
       {% if review_data|length %}
-        {% for review_item in review_data %}
-          <tr>
-            <td>{{ review_item.url }}</td>
-            <td>{{ review_item.script }}</td>
-            <td>{{ review_item.recommendation }}</td>
-          </tr>
+        {% for scan_type, review in review_data.items %}
+          {% for review_item in review %}
+            <tr>
+              <td>{{ scan_type }}</td>
+              <td>{{ review_item.url }}</td>
+              <td>{{ review_item.script }}</td>
+              <td>{{ review_item.recommendation }}</td>
+            </tr>
+          {% endfor %}
         {% endfor %}
         {% else %}
             <p>XSS-уязвимостей не обнаружено</p>
