@@ -4,7 +4,7 @@ import os
 from random import sample
 from string import ascii_lowercase, ascii_uppercase
 from typing import Dict, Set
-from urllib.parse import urljoin, urlparse
+from urllib.parse import parse_qs, urlencode, urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -45,6 +45,21 @@ class ScanProcessSelenium(Task):
             'action': form.attrs.get('action', '').lower(),
             'method': form.attrs.get('method', 'get').lower(),
         }
+
+    @staticmethod
+    def is_vulnerable_query_params(url, payload):
+        parsed_url = urlparse(url)
+        query_params = parse_qs(parsed_url.query)
+        if not query_params:
+            return False
+        modified_params = query_params.copy()
+        for param_name in query_params:
+            last_param_value, modified_params[param_name] = modified_params[param_name], payload
+            modified_url = parsed_url._replace(query=urlencode(modified_params, doseq=True)).geturl()
+            if payload in requests.get(modified_url).content.decode():
+                return True
+            modified_params[param_name] = last_param_value
+        return False
 
     def run(
             self,
@@ -88,7 +103,7 @@ class ScanProcessSelenium(Task):
             if not href:
                 continue
             parsed_href = urlparse(urljoin(url, href))
-            href = f'{parsed_href.scheme}://{parsed_href.netloc}{parsed_href.path}'
+            href = parsed_href.geturl()
             if (
                 domain_name not in href or
                 not self.is_valid_url(href) or
@@ -100,13 +115,14 @@ class ScanProcessSelenium(Task):
             self.internal_urls.add(href)
         return urls
 
-    def create_sitemap(self, url: str, max_urls: int = 20) -> None:
+    def create_sitemap(self, url: str, max_urls: int = 150) -> None:
         self.urls_count += 1
         if self.urls_count > max_urls:
             return
         links = self.get_links(url)
         for link in links:
             self.create_sitemap(link, max_urls=max_urls)
+        print(self.internal_urls)
 
     def get_page_forms(self, url):
         self.driver.get(url)
@@ -157,7 +173,7 @@ class ScanProcessSelenium(Task):
                 for form in page_forms:
                     form_info = self.get_form_info(form)
                     submit_form_response = self.submit_form(form_info, script.body).content.decode()
-                    if script.body in submit_form_response:
+                    if script.body in submit_form_response or self.is_vulnerable_query_params(url, script.body):
                         vulnerable_urls.append({
                             'url': url,
                             'script': script.body,
@@ -229,7 +245,12 @@ class ScanProcessSelenium(Task):
         for xss_type, url_set in self.review.items():
             self.review[xss_type] = list(url_set)
         self.scan.result = ScanResult.objects.create(review=self.review)
+        self.scan.date_end = now()
         xss_count = sum(len(category_urls) for category_urls in self.review.values())
+        if not self.internal_urls:
+            self.scan.status = ScanStatusChoices.error
+            self.scan.save(update_fields=('status', 'date_end'))
+            return
         severity = xss_count * 100 / len(self.internal_urls)
         if severity >= HIGH_SEVERITY_SCORE:
             self.scan.result.risk_level = ScanRiskLevelChoices.high
@@ -252,7 +273,6 @@ class ScanProcessSelenium(Task):
         review_file_path = os.path.join(REVIEW_DIR, review_filename)
         with open(review_file_path, 'wb') as review_file:
             review_file.write(html_output.content)
-        self.scan.date_end = now()
         self.scan.result.review_file = os.path.join(REVIEW_DIR_NAME, review_filename)
         self.scan.result.save(update_fields=('risk_level', 'review_file'))
         self.scan.save(update_fields=('status', 'date_end', 'result'))
