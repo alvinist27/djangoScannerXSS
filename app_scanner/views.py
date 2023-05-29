@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 
 from app_scanner.forms import ScanForm
-from app_scanner.tasks import ScanProcessSelenium
+from app_scanner.tasks import ScanProcess, ScanProcessSelenium
 
 
 def main_view(request: HttpRequest) -> HttpResponse:
@@ -55,12 +55,13 @@ class ScanFormView(LoginRequiredMixin, FormView):
 
     def form_valid(self, scan_form):
         scan_type = scan_form.cleaned_data['scan_type']
-        task = ScanProcessSelenium()
+        is_cloudflare = scan_form.cleaned_data['is_cloudflare']
+        task = ScanProcessSelenium() if is_cloudflare else ScanProcess()
         task.delay(
             target_url=scan_form.cleaned_data['target_url'],
             xss_type=scan_type,
             user_id=self.request.user.id,
-            is_cloudflare=scan_form.cleaned_data['is_cloudflare'],
+            is_cloudflare=is_cloudflare,
             is_one_page_scan=scan_form.cleaned_data['is_one_page_scan'],
         )
         return super().form_valid(scan_form)
