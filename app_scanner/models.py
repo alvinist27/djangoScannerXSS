@@ -7,7 +7,6 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from app_scanner.choices import ScanRiskLevelChoices, ScanStatusChoices, XSSVulnerabilityTypeChoices
-from djangoScannerXSS.settings import REVIEW_DIR
 
 DB_MAX_LENGTH = 256
 DB_LONG_MAX_LENGTH = 512
@@ -69,10 +68,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 class ScanResult(models.Model):
     """Model for ScanResult entities."""
 
-    risk_level = models.CharField(
-        choices=ScanRiskLevelChoices.choices,
-        verbose_name=_('Risk level'),
-    )
+    risk_level = models.IntegerField(choices=ScanRiskLevelChoices.choices, verbose_name=_('Risk level'))
     review = models.JSONField(verbose_name=_('Review'))
     review_file = models.FileField()
 

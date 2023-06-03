@@ -15,10 +15,7 @@ from django.utils.timezone import now
 from selenium.webdriver import Chrome, ChromeOptions
 from selenium.webdriver.common.by import By
 
-from app_scanner.choices import (
-    HEALTH_SEVERITY_SCORE, HIGH_SEVERITY_SCORE, MEDIUM_SEVERITY_SCORE, ScanRiskLevelChoices, ScanStatusChoices,
-    XSSVulnerabilityTypeChoices,
-)
+from app_scanner.choices import ScanRiskLevelChoices, ScanStatusChoices, XSSVulnerabilityTypeChoices
 from app_scanner.models import Payload, Scan, ScanResult
 from djangoScannerXSS import celery_app
 from djangoScannerXSS.settings import REVIEW_DIR, REVIEW_DIR_NAME
@@ -80,11 +77,11 @@ class BaseScanProcess:
             self.scan.save(update_fields=('status', 'date_end'))
             return
         severity = xss_count * 100 / len(self.internal_urls)
-        if severity >= HIGH_SEVERITY_SCORE:
+        if severity >= ScanRiskLevelChoices.high.value:
             self.scan.result.risk_level = ScanRiskLevelChoices.high
-        elif severity >= MEDIUM_SEVERITY_SCORE:
+        elif severity >= ScanRiskLevelChoices.medium.value:
             self.scan.result.risk_level = ScanRiskLevelChoices.medium
-        elif severity == HEALTH_SEVERITY_SCORE:
+        elif severity == ScanRiskLevelChoices.healthy.value:
             self.scan.result.risk_level = ScanRiskLevelChoices.healthy
         else:
             self.scan.result.risk_level = ScanRiskLevelChoices.low

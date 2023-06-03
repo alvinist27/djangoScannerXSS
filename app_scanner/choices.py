@@ -1,11 +1,6 @@
 """Module with choices using in forms and models."""
 
-from django.db.models import TextChoices
-
-HEALTH_SEVERITY_SCORE = 0
-LOW_SEVERITY_SCORE = 5
-MEDIUM_SEVERITY_SCORE = 10
-HIGH_SEVERITY_SCORE = 25
+from django.db.models import IntegerChoices, TextChoices
 
 
 class XSSVulnerabilityTypeChoices(TextChoices):
@@ -25,10 +20,10 @@ class ScanStatusChoices(TextChoices):
     completed = 'C', 'Completed'
 
 
-class ScanRiskLevelChoices(TextChoices):
+class ScanRiskLevelChoices(IntegerChoices):
     """Choices for presenting the final scan result."""
 
-    healthy = 'A'
-    low = 'B'
-    medium = 'C'
-    high = 'D'
+    healthy = 0, 'A'
+    low = 5, 'B'
+    medium = 10, 'C'
+    high = 25, 'D'
