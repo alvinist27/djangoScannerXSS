@@ -9,6 +9,7 @@ from urllib.parse import parse_qs, urlencode, urljoin, urlparse
 
 import requests
 from aiohttp import ClientSession
+from asgiref.sync import sync_to_async
 from bs4 import BeautifulSoup
 from django.shortcuts import render
 from django.utils.timezone import now
@@ -198,6 +199,25 @@ class AsyncScan(BaseScan):
                 content = await response.read()
         return content.decode('utf-8')
 
+    @sync_to_async
+    def get_payloads(self):
+        return [{'body': payload.body, 'recommendation': payload.recommendation} for payload in self.payloads]
+
+    @sync_to_async
+    def create_review_file(self, risk_level):
+        super().create_review_file(risk_level)
+
+    @sync_to_async
+    def prepare_review_file(self):
+        for xss_type, url_set in self.review.items():
+            self.review[xss_type] = list(url_set)
+        self.scan.date_end = now()
+        self.scan.status = ScanStatusChoices.completed
+
+    @sync_to_async
+    def update_scan_result(self):
+        self.scan.save(update_fields=('status', 'date_end', 'result'))
+
     async def create_sitemap(self, url: str, max_urls: int = 150) -> None:
         self.urls_count += 1
         if self.urls_count > max_urls:
@@ -213,7 +233,7 @@ class AsyncScan(BaseScan):
         soup = BeautifulSoup(page_content, 'html.parser')
         hrefs = soup.find_all('a', href=True)
         for href in hrefs:
-            parsed_href = urlparse(urljoin(url, href))
+            parsed_href = urlparse(urljoin(url, href.text))
             href = parsed_href.geturl()
             if (
                 domain_name not in href or
@@ -244,16 +264,19 @@ class AsyncScan(BaseScan):
         self.review.update({ReviewScanTypes.reflected: vulnerable_urls})
         if not is_single_scan_type:
             return
-        self.prepare_review_file()
+        await self.prepare_review_file()
+        await self.create_review_file(self.get_scan_risk_level())
+        await self.update_scan_result()
 
     async def scan_page_reflected_xss(self, url) -> Optional[dict]:
         page_forms = await self.get_page_forms(url)
-        for script in self.payloads:
+        payloads = await self.get_payloads()
+        for script in payloads:
             for form in page_forms:
                 form_info = self.get_form_info(form)
-                submit_form_response = self.submit_form(form_info, script.body).content.decode()
-                if script.body in submit_form_response or self.is_vulnerable_query_params(url, script.body):
-                    return {'url': url, 'script': script.body, 'recommendation': script.recommendation}
+                submit_form_response = self.submit_form(form_info, script['body']).content.decode()
+                if script['body'] in submit_form_response or self.is_vulnerable_query_params(url, script['body']):
+                    return {'url': url, 'script': script['body'], 'recommendation': script['recommendation']}
 
     async def scan_stored_xss(self, is_single_scan_type=True):
         logger.info(f'Started async Stored XSS scanning of {self.scan.target_url}')
@@ -267,7 +290,9 @@ class AsyncScan(BaseScan):
         self.review.update({ReviewScanTypes.stored: vulnerable_urls})
         if not is_single_scan_type:
             return
-        self.prepare_review_file()
+        await self.prepare_review_file()
+        await self.create_review_file(self.get_scan_risk_level())
+        await self.update_scan_result()
 
     async def test_stored_xss(self, page_forms):
         char_set = ascii_lowercase + ascii_uppercase
@@ -286,47 +311,53 @@ class AsyncScan(BaseScan):
     async def scan_page_stored_xss(self, url):
         page_forms = await self.get_page_forms(url)
         payload_exist_urls = await self.test_stored_xss(page_forms=page_forms)
-        for script in self.payloads:
+        payloads = await self.get_payloads()
+        for script in payloads:
             for form in page_forms:
                 form_info = self.get_form_info(form)
-                self.submit_form(form_info, script.body).content.decode()
+                self.submit_form(form_info, script['body']).content.decode()
                 scan_result = await self.check_potential_urls(url, payload_exist_urls, script)
                 if scan_result:
                     return scan_result
 
-    async def check_potential_urls(self, url, payload_exist_urls: set, script: Payload):
+    async def check_potential_urls(self, url, payload_exist_urls: set, script: dict):
         for potential_url in payload_exist_urls:
             page_content = self.make_request(potential_url)
-            if script.body in page_content:
-                return {'url': url, 'script': script.body, 'recommendation': script.recommendation}
+            if script['body'] in page_content:
+                return {'url': url, 'script': script['body'], 'recommendation': script['recommendation']}
 
     async def scan_dom_based_xss(self, is_single_scan_type=True):
         logger.info(f'Started async DOM-Based XSS scanning of {self.scan.target_url}')
         vulnerable_urls = []
         if not self.internal_urls:
             await self.create_sitemap(self.scan.target_url)
+        payloads = await self.get_payloads()
         for url in self.internal_urls:
-            for script in self.payloads:
-                target_url = f'{url}#{script.body}'
+            for script in payloads:
+                target_url = f'{url}#{script["body"]}'
                 page_content = await self.make_request(target_url)
-                if script.body in page_content:
+                if script['body'] in page_content:
                     vulnerable_urls.append({
                         'url': url,
-                        'script': script.body,
-                        'recommendation': script.recommendation,
+                        'script': script['body'],
+                        'recommendation': script['recommendation'],
                     })
                     break
         self.review.update({ReviewScanTypes.dom_based: vulnerable_urls})
         if not is_single_scan_type:
             return
-        self.prepare_review_file()
+        await self.prepare_review_file()
+        await self.create_review_file(self.get_scan_risk_level())
+        await self.update_scan_result()
 
     async def full_scan(self):
         logger.info(f'Started async Full XSS scanning of {self.scan.target_url}')
         await self.scan_reflected_xss(is_single_scan_type=False)
         await self.scan_stored_xss(is_single_scan_type=False)
         await self.scan_dom_based_xss(is_single_scan_type=False)
-        self.prepare_review_file()
+        await self.prepare_review_file()
+        await self.create_review_file(self.get_scan_risk_level())
+        await self.update_scan_result()
 
 
 class SeleniumScan(BaseScan):
