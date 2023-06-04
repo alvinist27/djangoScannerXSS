@@ -127,7 +127,7 @@ class BaseScan:
             modified_params[param_name] = last_param_value
         return False
 
-    def set_scan_risk_level(self):
+    def get_scan_risk_level(self) -> Optional[ScanRiskLevelChoices]:
         xss_count = sum(len(category_urls) for category_urls in self.review.values())
         if not self.internal_urls:
             self.scan.status = ScanStatusChoices.error
@@ -135,36 +135,38 @@ class BaseScan:
             return
         severity = xss_count * 100 / len(self.internal_urls)
         if severity >= ScanRiskLevelChoices.high.value:
-            self.scan.result.risk_level = ScanRiskLevelChoices.high
+            risk_level = ScanRiskLevelChoices.high
         elif severity >= ScanRiskLevelChoices.medium.value:
-            self.scan.result.risk_level = ScanRiskLevelChoices.medium
+            risk_level = ScanRiskLevelChoices.medium
         elif severity == ScanRiskLevelChoices.healthy.value:
-            self.scan.result.risk_level = ScanRiskLevelChoices.healthy
+            risk_level = ScanRiskLevelChoices.healthy
         else:
-            self.scan.result.risk_level = ScanRiskLevelChoices.low
+            risk_level = ScanRiskLevelChoices.low
+        return risk_level
 
-    def create_review_file(self):
+    def create_review_file(self, risk_level):
+        review_filename = f'scan_{self.scan.id}.html'
+        review_file_path = os.path.join(REVIEW_DIR, review_filename)
+        self.scan.result = ScanResult.objects.create(
+            risk_level=risk_level,
+            review=self.review,
+            review_file=os.path.join(REVIEW_DIR_NAME, review_filename),
+        )
         html_output = render(None, 'app_scanner/review.html', {
             'target_url': self.scan.target_url,
             'xss_type': self.scan.get_xss_type_display(),
             'review_data': self.review,
-            'risk_level_letter': self.scan.result.risk_level,
             'risk_level': self.scan.result.get_risk_level_display(),
         })
-        review_filename = f'scan_{self.scan.id}.html'
-        review_file_path = os.path.join(REVIEW_DIR, review_filename)
         FileAdapter(file_path=review_file_path).write(html_output.content)
-        self.scan.result.review_file = os.path.join(REVIEW_DIR_NAME, review_filename)
-        self.scan.result.save(update_fields=('risk_level', 'review_file'))
 
     def prepare_review_file(self):
         for xss_type, url_set in self.review.items():
             self.review[xss_type] = list(url_set)
-        self.scan.result = ScanResult.objects.create(review=self.review)
         self.scan.date_end = now()
         self.scan.status = ScanStatusChoices.completed
-        self.set_scan_risk_level()
-        self.create_review_file()
+        risk_level = self.get_scan_risk_level()
+        self.create_review_file(risk_level)
         self.scan.save(update_fields=('status', 'date_end', 'result'))
 
     def submit_form(self, form_info, payload):
@@ -203,7 +205,6 @@ class AsyncScan(BaseScan):
         links = await self.get_links(url)
         for link in links:
             await self.create_sitemap(link, max_urls=max_urls)
-        print(self.internal_urls)
 
     async def get_links(self, url: str) -> set[str]:
         urls = set()
@@ -232,6 +233,7 @@ class AsyncScan(BaseScan):
         return page_forms
 
     async def scan_reflected_xss(self, is_single_scan_type=True):
+        logger.info(f'Started async Reflected XSS scanning of {self.scan.target_url}')
         vulnerable_urls = []
         if not self.internal_urls:
             await self.create_sitemap(self.scan.target_url)
@@ -254,6 +256,7 @@ class AsyncScan(BaseScan):
                     return {'url': url, 'script': script.body, 'recommendation': script.recommendation}
 
     async def scan_stored_xss(self, is_single_scan_type=True):
+        logger.info(f'Started async Stored XSS scanning of {self.scan.target_url}')
         vulnerable_urls = []
         if not self.internal_urls:
             await self.create_sitemap(self.scan.target_url)
@@ -298,6 +301,7 @@ class AsyncScan(BaseScan):
                 return {'url': url, 'script': script.body, 'recommendation': script.recommendation}
 
     async def scan_dom_based_xss(self, is_single_scan_type=True):
+        logger.info(f'Started async DOM-Based XSS scanning of {self.scan.target_url}')
         vulnerable_urls = []
         if not self.internal_urls:
             await self.create_sitemap(self.scan.target_url)
@@ -318,6 +322,7 @@ class AsyncScan(BaseScan):
         self.prepare_review_file()
 
     async def full_scan(self):
+        logger.info(f'Started async Full XSS scanning of {self.scan.target_url}')
         await self.scan_reflected_xss(is_single_scan_type=False)
         await self.scan_stored_xss(is_single_scan_type=False)
         await self.scan_dom_based_xss(is_single_scan_type=False)
@@ -370,7 +375,6 @@ class SeleniumScan(BaseScan):
         links = self.get_links(url)
         for link in links:
             self.create_sitemap(link, max_urls=max_urls)
-        print(self.internal_urls)
 
     def get_page_forms(self, url):
         self.driver.get(url)
@@ -379,6 +383,7 @@ class SeleniumScan(BaseScan):
         return page_forms
 
     def scan_reflected_xss(self, is_single_scan_type=True):
+        logger.info(f'Started Reflected XSS scanning of {self.scan.target_url} by Selenium')
         vulnerable_urls = []
         if not self.internal_urls:
             self.create_sitemap(self.scan.target_url)
@@ -402,6 +407,7 @@ class SeleniumScan(BaseScan):
                     return {'url': url, 'script': script.body, 'recommendation': script.recommendation}
 
     def scan_stored_xss(self, is_single_scan_type=True):
+        logger.info(f'Started Stored XSS scanning of {self.scan.target_url} by Selenium')
         vulnerable_urls = []
         if not self.internal_urls:
             self.create_sitemap(self.scan.target_url)
@@ -447,6 +453,7 @@ class SeleniumScan(BaseScan):
                 return {'url': url, 'script': script.body, 'recommendation': script.recommendation}
 
     def scan_dom_based_xss(self, is_single_scan_type=True):
+        logger.info(f'Started DOM-Based XSS scanning of {self.scan.target_url} by Selenium')
         vulnerable_urls = []
         if not self.internal_urls:
             self.create_sitemap(self.scan.target_url)
@@ -464,6 +471,7 @@ class SeleniumScan(BaseScan):
         self.prepare_review_file()
 
     def full_scan(self):
+        logger.info(f'Started Full XSS scanning of {self.scan.target_url} by Selenium')
         self.scan_reflected_xss(is_single_scan_type=False)
         self.scan_stored_xss(is_single_scan_type=False)
         self.scan_dom_based_xss(is_single_scan_type=False)
