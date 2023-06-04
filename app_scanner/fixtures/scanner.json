@@ -18,7 +18,7 @@
     "model": "app_scanner.scanresult",
     "pk": 2,
     "fields": {
-        "risk_level": "D",
+        "risk_level": 25,
         "review": {
             "reflected": [
                 {

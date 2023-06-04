@@ -27,3 +27,11 @@ class ScanRiskLevelChoices(IntegerChoices):
     low = 5, 'B'
     medium = 10, 'C'
     high = 25, 'D'
+
+
+class ReviewScanTypes(TextChoices):
+    """Types of xss types describing in review."""
+
+    reflected = 'Reflected'
+    stored = 'Stored'
+    dom_based = 'DOM-based'

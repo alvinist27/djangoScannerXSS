@@ -61,7 +61,6 @@ class ScanFormView(LoginRequiredMixin, FormView):
             target_url=scan_form.cleaned_data['target_url'],
             xss_type=scan_type,
             user_id=self.request.user.id,
-            is_cloudflare=is_cloudflare,
             is_one_page_scan=scan_form.cleaned_data['is_one_page_scan'],
         )
         return super().form_valid(scan_form)
